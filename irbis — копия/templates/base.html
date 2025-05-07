@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Карта троп</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .map-container {
+            height: 600px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        /* Новые стили для модального окна */
+        #trail-modal {
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 1000;
+            overflow: hidden;
+            transition: opacity 0.3s;
+        }
+        #trail-modal > div {
+            padding: 25px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        #trail-modal button {
+            margin-top: 15px;
+            padding: 8px 15px;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #trail-modal button:hover {
+            background: #1a252f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Карта троп</h1>
+        <div class="map-container">
+            <!-- ВСТАВЛЯЕМ КАРТУ НАПРЯМУЮ -->
+            {% include "map.html" %}
+        </div>
+    </div>
+
+    <!-- Модальное окно для информации о тропе -->
+    <div id="trail-modal">
+        <div>
+            <div id="trail-modal-content">
+                <!-- Сюда будет вставляться содержимое -->
+            </div>
+            <button onclick="closeTrailModal()">Закрыть</button>
+        </div>
+    </div>
+
+    <script>
+        // Функции для управления модальным окном
+        function openTrailModal(content) {
+            document.getElementById('trail-modal-content').innerHTML = content;
+            document.getElementById('trail-modal').style.display = 'block';
+            changeTrailColor();
+        }
+
+        function closeTrailModal() {
+            document.getElementById('trail-modal').style.display = 'none';
+            resetTrailColor();
+        }
+
+        // Функции для изменения цвета тропы
+        function changeTrailColor() {
+            map.eachLayer(function (layer) {
+                if (layer instanceof L.Polyline && layer !== initialPolyline) {
+                    map.removeLayer(layer);
+                }
+            });
+            segments.forEach(segment => {
+                L.polyline(segment.coords, {
+                    color: segment.color,
+                    weight: 2.5,
+                    opacity: 1,
+                    smoothFactor: 1.0
+                }).addTo(map);
+            });
+        }
+
+        function resetTrailColor() {
+            map.eachLayer(function (layer) {
+                if (layer instanceof L.Polyline && layer !== initialPolyline) {
+                    map.removeLayer(layer);
+                }
+            });
+            initialPolyline.addTo(map);
+        }
+    </script>
+</body>
+</html>

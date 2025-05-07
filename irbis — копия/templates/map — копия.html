@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script>
+        L_NO_TOUCH = false;
+        L_DISABLE_3D = false;
+    </script>
+    <style>html, body {width: 100%;height: 100%;margin: 0;padding: 0;}</style>
+    <style>#map {position:absolute;top:0;bottom:0;right:0;left:0;}</style>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <style>
+        #map_9ed87c20b56f11e80aa2b8300cba61c2 {
+            position: relative;
+            width: 100.0%;
+            height: 100.0%;
+            left: 0.0%;
+            top: 0.0%;
+        }
+        .leaflet-container { font-size: 1rem; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-locatecontrol/0.66.2/L.Control.Locate.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-locatecontrol/0.66.2/L.Control.Locate.min.css"/>
+</head>
+<body>
+    <div class="folium-map" id="map_9ed87c20b56f11e80aa2b8300cba61c2"></div>
+
+    <!-- Модальное окно для информации о тропе -->
+    <div id="trail-modal" style="display: none; position: fixed; top: 20px; right: 20px; width: 300px; background: white; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 1000; overflow: hidden; transition: opacity 0.3s;">
+        <div style="padding: 25px; max-height: 80vh; overflow-y: auto;">
+            <div id="trail-modal-content">
+                <!-- Сюда будет вставляться содержимое -->
+            </div>
+            <button onclick="closeTrailModal()">Закрыть</button>
+        </div>
+    </div>
+
+    <script>
+        var map = L.map(
+            "map_9ed87c20b56f11e80aa2b8300cba61c2",
+            {
+                center: [56.4672374, 60.0962137],
+                crs: L.CRS.EPSG3857,
+                zoom: 12,
+                zoomControl: true,
+                preferCanvas: false,
+            }
+        );
+
+        var tile_layer_c024d29897b17115e0480573a0d3c5cf = L.tileLayer(
+            "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+            {
+                minZoom: 0,
+                maxZoom: 18,
+                maxNativeZoom: 18,
+                noWrap: false,
+                attribution: "Map data: \u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors, \u003ca href=\"http://viewfinderpanoramas.org\"\u003eSRTM\u003c/a\u003e | Map style: \u0026copy; \u003ca href=\"https://opentopomap.org\"\u003eOpenTopoMap\u003c/a\u003e (\u003ca href=\"https://creativecommons.org/licenses/by-sa/3.0/\"\u003eCC-BY-SA\u003c/a\u003e)",
+                subdomains: "abc",
+                detectRetina: false,
+                tms: false,
+                opacity: 1,
+            }
+        );
+
+        tile_layer_c024d29897b17115e0480573a0d3c5cf.addTo(map);
+
+        // Сегменты тропы с разными цветами
+        var segments = [
+            {
+                coords: [[56.4672374, 60.0962137], [56.4676971, 60.095904]],
+                color: 'green'
+            },
+            {
+                coords: [[56.4676971, 60.095904], [56.4686012, 60.0939417]],
+                color: 'yellow'
+            },
+            {
+                coords: [[56.4686012, 60.0939417], [56.4689936, 60.0935001]],
+                color: 'red'
+            },
+            {
+                coords: [[56.4689936, 60.0935001], [56.469413, 60.0927495]],
+                color: 'green'
+            },
+            {
+                coords: [[56.469413, 60.0927495], [56.4698471, 60.0915388]],
+                color: 'yellow'
+            },
+            {
+                coords: [[56.4698471, 60.0915388], [56.4698566, 60.0908446]],
+                color: 'red'
+            },
+            {
+                coords: [[56.4698566, 60.0908446], [56.4699289, 60.0902804]],
+                color: 'green'
+            },
+            {
+                coords: [[56.4699289, 60.0902804], [56.4700287, 60.0894367]],
+                color: 'yellow'
+            },
+            {
+                coords: [[56.4700287, 60.0894367], [56.4702274, 60.0883854]],
+                color: 'red'
+            },
+            {
+                coords: [[56.4702274, 60.0883854], [56.4702465, 60.087448]],
+                color: 'green'
+            },
+            {
+                coords: [[56.4702465, 60.087448], [56.4704707, 60.086806]],
+                color: 'yellow'
+            },
+            {
+                coords: [[56.4704707, 60.086806], [56.4706511, 60.0861156]],
+                color: 'red'
+            },
+            {
+                coords: [[56.4706511, 60.0861156], [56.4713004, 60.0836302]],
+                color: 'green'
+            },
+            {
+                coords: [[56.4713004, 60.0836302], [56.4720115, 60.0825574]],
+                color: 'yellow'
+            },
+            {
+                coords: [[56.4720115, 60.0825574], [56.4726163, 60.0824422]],
+                color: 'red'
+            },
+            {
+                coords: [[56.4726163, 60.0824422], [56.4732412, 60.0829758]],
+                color: 'green'
+            },
+            {
+                coords: [[56.4732412, 60.0829758], [56.4736234, 60.0840594]],
+                color: 'yellow'
+            },
+            {
+                coords: [[56.4736234, 60.0840594], [56.4736234, 60.0844496]],
+                color: 'red'
+            },
+            {
+                coords: [[56.4736234, 60.0844496], [56.4736234, 60.0850035]],
+                color: 'green'
+            },
+            {
+                coords: [[56.4736234, 60.0850035], [56.4745338, 60.0865413]],
+                color: 'yellow'
+            }
+        ];
+
+        // Изначально тропа синяя
+        var initialPolyline = L.polyline(
+            segments.flatMap(segment => segment.coords),
+            {
+                color: 'blue',
+                weight: 2.5,
+                opacity: 1,
+                smoothFactor: 1.0
+            }
+        ).addTo(map);
+
+        // Функция для загрузки данных о тропах из базы данных
+        function loadTrailDescription(name, callback) {
+            fetch('/trails/get_trails/') // Обновленный путь к API
+                .then(response => response.json())
+                .then(data => {
+                    const trail = data.find(t => t.name === name);
+                    if (trail) {
+                        callback(trail.description);
+                    } else {
+                        callback('Описание не найдено.');
+                    }
+                });
+        }
+
+        // Обработчик события клика по тропе
+        initialPolyline.on('click', function() {
+            loadTrailDescription('Азов-тропа', function(description) {
+                var content = `
+                    <h3>Азов-тропа</h3>
+                    <p>${description}</p>
+                `;
+                openTrailModal(content);
+            });
+        });
+
+        var locate_control_a9e70ff146d234bd71bc93137463b613 = L.control.locate(
+            {}
+        ).addTo(map);
+
+        locate_control_a9e70ff146d234bd71bc93137463b613.start();
+
+        // Функции для управления модальным окном
+        function openTrailModal(content) {
+            document.getElementById('trail-modal-content').innerHTML = content;
+            document.getElementById('trail-modal').style.display = 'block';
+            changeTrailColor();
+        }
+
+        function closeTrailModal() {
+            document.getElementById('trail-modal').style.display = 'none';
+            resetTrailColor();
+        }
+
+        // Функции для изменения цвета тропы
+        function changeTrailColor() {
+            map.eachLayer(function (layer) {
+                if (layer instanceof L.Polyline && layer !== initialPolyline) {
+                    map.removeLayer(layer);
+                }
+            });
+            segments.forEach(segment => {
+                L.polyline(segment.coords, {
+                    color: segment.color,
+                    weight: 2.5,
+                    opacity: 1,
+                    smoothFactor: 1.0
+                }).addTo(map);
+            });
+        }
+
+        function resetTrailColor() {
+            map.eachLayer(function (layer) {
+                if (layer instanceof L.Polyline && layer !== initialPolyline) {
+                    map.removeLayer(layer);
+                }
+            });
+            initialPolyline.addTo(map);
+        }
+    </script>
+</body>
+</html>

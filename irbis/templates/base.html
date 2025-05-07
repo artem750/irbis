@@ -19,14 +19,14 @@
         }
         .main-content {
             display: flex;
-            max-width: 1600px;  /* Увеличено до 1600px */
-            width: 100%;        /* На всю доступную ширину */
+            max-width: 1600px;
+            width: 100%;
             margin: 20px auto;
             gap: 20px;
-            padding: 0 10px;     /* Уменьшены боковые отступы */
+            padding: 0 10px;
         }
         .trail-list {
-            width: 300px;        /* Увеличено с 250px */
+            width: 300px;
             background: #fff;
             padding: 15px;
             border-radius: 8px;
@@ -40,13 +40,15 @@
             padding: 10px;
             border-bottom: 1px solid #ddd;
             cursor: pointer;
+            display: flex;
+            justify-content: space-between;
         }
         .trail-list li:hover {
             background: #f0f0f0;
         }
         .map-container {
             flex: 1;
-            height: 700px;      /* Увеличено с 600px */
+            height: 700px;
             background: white;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
@@ -59,7 +61,7 @@
                 width: 100%;
             }
             .map-container {
-                height: 500px;  /* Меньшая высота на мобильных */
+                height: 500px;
             }
         }
     </style>
@@ -73,10 +75,11 @@
         <!-- Список троп слева -->
         <div class="trail-list">
             <h2>Список троп:</h2>
-            <ul>
-                <li onclick="loadTrail('Азов-гора')">Азов-гора</li>
-                <li onclick="loadTrail('Аракульский шихан')">Аракульский шихан</li>
-                <li onclick="loadTrail('Сугомак')">Сугомак</li>
+            <ul id="trail-list">
+                <li onclick="focusOnTrail('Азов-гора')">Азов-гора <span class="distance"></span></li>
+                <li onclick="focusOnTrail('Аракульский шихан')">Аракульский шихан <span class="distance"></span></li>
+                <li onclick="focusOnTrail('Сугомак')">Сугомак <span class="distance"></span></li>
+                <li onclick="focusOnTrail('Перья через белый ключ (таганай)')">Перья через белый ключ (таганай) <span class="distance"></span></li>
             </ul>
         </div>
 
@@ -87,9 +90,68 @@
     </div>
 
     <script>
-        function loadTrail(trail_name) {
-            console.log("Загрузка тропы:", trail_name);
+        // Функция для загрузки координат тропы
+        function loadTrailCoords(trail_name, callback) {
+            fetch(`/trails/get_trail_with_coords/${trail_name}/`)
+                .then(response => response.json())
+                .then(data => {
+                    callback(data.coords);
+                });
         }
+
+        // Функция для перемещения карты к тропе
+        function focusOnTrail(trail_name) {
+            loadTrailCoords(trail_name, function(coords) {
+                // Вычисляем центр тропы
+                var bounds = L.latLngBounds(coords);
+                map.fitBounds(bounds); // Перемещаем карту к тропе
+            });
+        }
+
+        // Функция для расчета расстояния между двумя точками
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Радиус Земли в километрах
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const distance = R * c;
+            return distance;
+        }
+
+        // Функция для обновления расстояний в списке троп
+        function updateDistances(userLocation) {
+            const trails = document.querySelectorAll('.trail-list li');
+            trails.forEach(trail => {
+                const trailName = trail.innerText.trim();
+                loadTrailCoords(trailName, function(coords) {
+                    const trailLat = coords[0][0];
+                    const trailLon = coords[0][1];
+                    const distance = calculateDistance(userLocation.lat, userLocation.lng, trailLat, trailLon);
+                    trail.querySelector('.distance').innerText = `(${distance.toFixed(2)} км от вас)`;
+                });
+            });
+        }
+
+        // Получение текущего местоположения пользователя
+        function getUserLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const userLocation = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    updateDistances(userLocation);
+                });
+            } else {
+                console.log("Geolocation is not supported by this browser.");
+            }
+        }
+
+        // Запуск функции для получения местоположения пользователя
+        getUserLocation();
     </script>
 </body>
 </html>
